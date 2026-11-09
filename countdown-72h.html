@@ -1,0 +1,138 @@
+<!-- 72h Neon Countdown — self-contained, paste into the ad's HTML -->
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+
+<div class="nc" dir="rtl" role="timer" aria-live="off">
+  <p class="nc-title">המבצע מסתיים בעוד</p>
+  <div class="nc-row">
+    <div class="nc-unit"><span class="nc-num" data-h>72</span><span class="nc-lbl">שעות</span></div>
+    <span class="nc-sep">:</span>
+    <div class="nc-unit"><span class="nc-num" data-m>00</span><span class="nc-lbl">דקות</span></div>
+    <span class="nc-sep">:</span>
+    <div class="nc-unit"><span class="nc-num" data-s>00</span><span class="nc-lbl">שניות</span></div>
+  </div>
+  <p class="nc-done" hidden>המבצע הסתיים</p>
+</div>
+
+<style>
+  .nc {
+    --navy: #0b0b3b;
+    --navy-2: #14145a;
+    --neon: #5ec8ff;
+    --neon-hot: #b8ecff;
+    --glow: rgba(94, 200, 255, .55);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    padding: 20px 18px 22px;
+    border-radius: 14px;
+    background: radial-gradient(120% 90% at 50% 0%, var(--navy-2) 0%, var(--navy) 70%);
+    font-family: "Rubik", "Assistant", "Heebo", Arial, sans-serif;
+    text-align: center;
+    color: #fff;
+  }
+  .nc * { box-sizing: border-box; }
+  .nc-title {
+    margin: 0 0 14px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .nc-row {
+    display: flex;
+    direction: ltr;            /* keep HH:MM:SS order */
+    justify-content: center;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .nc-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 76px;
+    padding: 10px 6px 8px;
+    border: 1.5px solid var(--neon);
+    border-radius: 10px;
+    box-shadow: 0 0 6px rgba(94, 200, 255, .35), inset 0 0 6px rgba(94, 200, 255, .12);
+  }
+  .nc-num {
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--neon-hot);
+    text-shadow: 0 0 6px var(--glow);
+  }
+  .nc-lbl {
+    margin-top: 6px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, .8);
+  }
+  .nc-sep {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    padding-top: 12px;
+    color: var(--neon);
+    text-shadow: 0 0 5px var(--glow);
+  }
+  .nc-done {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--neon-hot);
+    text-shadow: 0 0 6px var(--glow);
+  }
+  @media (max-width: 340px) {
+    .nc-unit { min-width: 62px; }
+    .nc-num { font-size: 32px; }
+  }
+</style>
+
+<script>
+(function () {
+  /* ===== CONFIG =====
+     Option A – fixed deadline for everyone: set END_DATE, e.g. "2026-11-12T23:59:00+02:00"
+     Option B – 72h per user from first view: leave END_DATE = null              */
+  var END_DATE = "2026-11-12T13:30:00+02:00"; // start: 9 Nov 2026 13:30 IL + 72h
+  var HOURS = 72;
+  var STORAGE_KEY = "nc_countdown_end_v1"; // change to restart per-user timers
+
+  var root = document.querySelector(".nc");
+  if (!root) return;
+  var h = root.querySelector("[data-h]"),
+      m = root.querySelector("[data-m]"),
+      s = root.querySelector("[data-s]"),
+      row = root.querySelector(".nc-row"),
+      title = root.querySelector(".nc-title"),
+      done = root.querySelector(".nc-done");
+
+  function getEnd() {
+    if (END_DATE) return new Date(END_DATE).getTime();
+    var end = null;
+    try { end = parseInt(localStorage.getItem(STORAGE_KEY), 10); } catch (e) {}
+    if (!end || isNaN(end)) {
+      end = Date.now() + HOURS * 3600 * 1000;
+      try { localStorage.setItem(STORAGE_KEY, String(end)); } catch (e) {}
+    }
+    return end;
+  }
+
+  var end = getEnd();
+  function pad(n) { return n < 10 ? "0" + n : String(n); }
+
+  function tick() {
+    var left = Math.max(0, end - Date.now());
+    var t = Math.floor(left / 1000);
+    h.textContent = pad(Math.floor(t / 3600));
+    m.textContent = pad(Math.floor((t % 3600) / 60));
+    s.textContent = pad(t % 60);
+    if (left <= 0) {
+      clearInterval(timer);
+      row.hidden = true; title.hidden = true; done.hidden = false;
+    }
+  }
+  var timer = setInterval(tick, 1000);
+  tick();
+})();
+</script>
